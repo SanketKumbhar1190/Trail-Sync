@@ -1,0 +1,22 @@
+.manage-events-container {
+    background-color: #f4f4f4;
+    min-height: 100vh;
+    padding: 20px;
+    margin-bottom: 50px;
+    border-radius: 10px;
+  }
+  
+  .event-card {
+    border-radius: 10px;
+    transition: transform 0.2s;
+    background: white;
+  }
+  
+  .event-card:hover {
+    transform: scale(1.03);
+  }
+  
+  .btn-danger {
+    font-weight: bold;
+  }
+  

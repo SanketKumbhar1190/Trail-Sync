@@ -1,0 +1,23 @@
+.container {
+    /* background-color: #f8f9fa; */
+    padding: 20px;
+    border-radius: 8px;
+  }
+  
+  .stats-card {
+    background-color: white;
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .card {
+    margin-bottom: 20px;
+  }
+  
+  canvas {
+    width: 100% !important;
+    height: 300px !important;
+  }
+  

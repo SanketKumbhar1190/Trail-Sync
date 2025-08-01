@@ -1,0 +1,14 @@
+.admin-card {
+    border-radius: 10px;
+    transition: transform 0.2s;
+  }
+  
+  .admin-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .admin-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
