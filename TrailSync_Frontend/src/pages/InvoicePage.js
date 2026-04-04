@@ -36,7 +36,18 @@ const InvoicePage = () => {
 
   // Function to generate PDF
   const generatePDF = () => {
+    // Check if invoice data is available
+    if (!invoice || !invoice.event) {
+      alert("Invoice data not available. Please wait for the data to load or try refreshing the page.");
+      return;
+    }
+
     const input = invoiceRef.current;
+    if (!input) {
+      alert("Invoice element not found.");
+      return;
+    }
+
     html2canvas(input).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
@@ -45,6 +56,9 @@ const InvoicePage = () => {
 
       pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
       pdf.save(`Invoice_Event_${invoice.event.title}.pdf`);
+    }).catch((error) => {
+      console.error("PDF generation error:", error);
+      alert("Failed to generate PDF. Please try again.");
     });
   };
 
@@ -69,8 +83,13 @@ const InvoicePage = () => {
       </div>
 
       <div className="d-flex justify-content-center mt-3">
-        <button className="btn btn-success" onClick={generatePDF}>
-          <FaDownload className="me-2" /> Download Invoice (PDF)
+        <button 
+          className="btn btn-success" 
+          onClick={generatePDF}
+          disabled={!invoice || !invoice.event}
+        >
+          <FaDownload className="me-2" /> 
+          {!invoice || !invoice.event ? "Loading..." : "Download Invoice (PDF)"}
         </button>
       </div>
     </div>

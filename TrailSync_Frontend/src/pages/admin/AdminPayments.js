@@ -93,7 +93,7 @@ const AdminPayments = () => {
 
       {/* Back Button */}
       <div className="d-flex justify-content-center mt-4">
-        <button className="btn btn-secondary" onClick={() => navigate("/admin/dashboard")}>
+        <button className="btn btn-secondary" onClick={() => navigate("/admin-dashboard")}>
           Back to Dashboard
         </button>
       </div>

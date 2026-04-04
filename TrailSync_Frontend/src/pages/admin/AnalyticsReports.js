@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axiosConfig";
+import { useNavigate } from "react-router-dom";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -19,6 +20,7 @@ const AnalyticsReports = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [eventData, setEventData] = useState({ dates: [], counts: [] });
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const admin = JSON.parse(localStorage.getItem("user"));
   const token = admin?.jwtToken;
@@ -153,6 +155,13 @@ const AnalyticsReports = () => {
         ) : (
           <p className="text-center">No event trend data available.</p>
         )}
+      </div>
+
+      {/* Back Button */}
+      <div className="d-flex justify-content-center mt-4">
+        <button className="btn btn-secondary" onClick={() => navigate("/admin-dashboard")}>
+          Back to Dashboard
+        </button>
       </div>
     </div>
   );
