@@ -28,7 +28,7 @@ public class MyConfig {
     public UserDetailsService userDetailsService() {
     	return username -> userRepository.findByEmail(username).map(user -> {
     		return User.builder().username(user.getEmail()).password(user.getPassword())
-    				.roles(user.getRole().getName())
+    				.authorities(user.getRole().getName())
     				
     				.build();
     	}).orElseThrow(()-> new UsernameNotFoundException("User Not Found with username = "+ username));

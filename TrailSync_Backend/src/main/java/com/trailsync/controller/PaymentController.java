@@ -32,7 +32,6 @@ public class PaymentController {
     @PostMapping("/create-order")
     public ResponseEntity<?> createOrder(@RequestBody Map<String, Object> orderData) {
         try {
-            System.out.println("Received Order Request: " + orderData);
 
             // Extract userId, eventId, amount, and phone number
             Long userId = orderData.containsKey("userId") ? Long.parseLong(orderData.get("userId").toString()) : null;
@@ -43,6 +42,14 @@ public class PaymentController {
             // Validate userId and eventId
             if (userId == null || eventId == null) {
                 return ResponseEntity.badRequest().body("Missing userId or eventId in request!");
+            }
+
+            // Validate phone number
+            if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Mobile number is required!");
+            }
+            if (!phoneNumber.matches("^[0-9]{10}$")) {
+                return ResponseEntity.badRequest().body("Mobile number must be exactly 10 digits!");
             }
 
             // Fetch user and event from DB
@@ -75,7 +82,6 @@ public class PaymentController {
     @PostMapping("/handle-payment-callback")
     public ResponseEntity<String> handlePaymentCallback(@RequestBody Map<String, String> payload) {
         try {
-        	System.out.println("Payload "+payload);
             paymentService.updateOrder(payload);
             return ResponseEntity.ok("Payment updated successfully.");
         } catch (Exception e) {
@@ -99,12 +105,9 @@ public class PaymentController {
     @GetMapping("/details")
     public ResponseEntity<?> getPaymentDetails(@RequestParam("userId") Long userId,
                                                @RequestParam("eventId") Long eventId) {
-    	System.out.println("in details");
         try {
-        	 System.out.println("in details111111111111");
             Payment payment = paymentService.getPaymentDetails(userId, eventId);
-           
-            System.out.println("Details : "+ payment);
+
             if (payment == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("Payment details not found for the given user and event.");

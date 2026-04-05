@@ -12,10 +12,10 @@
     </parent>
     
     <groupId>com.trailsync</groupId>
-    <artifactId>TrailSync</artifactId>
+    <artifactId>Squadout</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>PlanIt</name>
-    <description>**TrailSync** is an event management platform where users create, join events, and split costs. It supports payments via Razorpay, real-time chat, expense management, and PDF invoices. Admins manage locations.</description>
+    <name>Squadout</name>
+    <description>**Squadout** is an event management platform where users create, join events, and split costs. It supports payments via Razorpay, real-time chat, expense management, and PDF invoices. Admins manage locations.</description>
     
     <!-- Define Java version for the project -->
     <properties>

@@ -80,7 +80,7 @@ const PaymentPage = () => {
       const { razorpayOrderId, amount } = orderResponse.data;
 
       const options = {
-        key: "rzp_test_Q0WD3rgIED0ILF",
+        key: "rzp_test_SZjFdvR5Fb6rMJ",
         amount: amount *100,
         currency: "INR",
         name: "PlanIT Event",

@@ -57,8 +57,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));  // ✅ Allow Frontend URL
-        configuration.setAllowedHeaders(List.of("*"));
+String allowedOrigins = System.getenv("ALLOWED_ORIGINS") != null 
+    ? System.getenv("ALLOWED_ORIGINS") 
+    : "http://localhost:3000";
+configuration.setAllowedOrigins(List.of(allowedOrigins.split(",")));        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setMaxAge(3600L);
         

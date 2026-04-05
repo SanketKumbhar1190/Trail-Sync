@@ -3,6 +3,7 @@ package com.trailsync.security;
 import io.jsonwebtoken.*;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -13,8 +14,8 @@ import java.util.function.Function;
 public class JwtHelper {
 
     public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60; // 5 hours
-    private final String secret = "afafasfafafasfasfasfafacasdasfasxASFACASDFACASDFASFASFDAFASFASDAADSCSDFADCVSGCFVADXCcadwavfsfarvf";
-
+@Value("${jwt.secret}")
+private String secret;
     // Retrieve username from JWT token
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);

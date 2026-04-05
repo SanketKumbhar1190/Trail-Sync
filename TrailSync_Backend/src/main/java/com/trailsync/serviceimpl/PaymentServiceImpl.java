@@ -31,24 +31,37 @@ public class PaymentServiceImpl{
             throw new IllegalArgumentException("User and Module cannot be null.");
         }
 
-        // Debug logs
         System.out.println("Creating order for User: " + order.getUser().getId() + " and Module: " + order.getEvent().getId());
+        System.out.println("Amount: " + order.getAmount());
 
-        JSONObject orderRequest = new JSONObject();
-        orderRequest.put("amount", order.getAmount() *100);
-        orderRequest.put("currency", "INR");
-        orderRequest.put("receipt", "receipt_" + System.currentTimeMillis());
+        try {
+            JSONObject orderRequest = new JSONObject();
+            orderRequest.put("amount", (int)(order.getAmount() * 100));
+            orderRequest.put("currency", "INR");
+            orderRequest.put("receipt", "receipt_" + System.currentTimeMillis());
 
-        Order razorpayOrder = client.orders.create(orderRequest);
-        System.out.println("Order created with Razorpay Order ID: " + razorpayOrder.get("id"));
+            System.out.println("Calling Razorpay API...");
+            Order razorpayOrder = client.orders.create(orderRequest);
+            System.out.println("Razorpay response: " + razorpayOrder.toString());
+            System.out.println("Order ID: " + razorpayOrder.get("id"));
 
-        order.setRazorpayOrderId(razorpayOrder.get("id"));
-        order.setOrderStatus("CREATED");
+            order.setRazorpayOrderId(razorpayOrder.get("id"));
+            order.setOrderStatus("CREATED");
 
-        Payment savedOrder = paymentRepository.save(order);
-        System.out.println("Order saved to database: " + savedOrder.getId());
+            Payment savedOrder = paymentRepository.save(order);
+            System.out.println("Saved to DB: " + savedOrder.getId());
 
-        return savedOrder;
+            return savedOrder;
+
+        } catch (RazorpayException e) {
+            System.out.println("RAZORPAY ERROR: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } catch (Exception e) {
+            System.out.println("GENERAL ERROR: " + e.getMessage());
+            e.printStackTrace();
+            throw new RazorpayException(e.getMessage());
+        }
     }
 
     @Transactional
