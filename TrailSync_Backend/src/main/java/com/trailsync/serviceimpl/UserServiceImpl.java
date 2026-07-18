@@ -23,6 +23,9 @@ public class UserServiceImpl implements UserService {
 
  @Override
  public User createUser(User user) {
+     if (existsByEmail(user.getEmail())) {
+         throw new IllegalArgumentException("Email is already registered.");
+     }
 
      String encodedPassword = passwordEncoder.encode(user.getPassword());
      user.setPassword(encodedPassword);

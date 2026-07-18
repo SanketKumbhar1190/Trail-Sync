@@ -17,6 +17,8 @@ import com.trailsync.model.Event;
 import com.trailsync.model.User;
 import com.trailsync.service.EventService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
@@ -24,7 +26,7 @@ public class EventController {
     private EventService eventService;
 
     @PostMapping("/create")
-    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
+    public ResponseEntity<Event> createEvent(@Valid @RequestBody Event event) {
         return ResponseEntity.ok(eventService.createEvent(event));
     }
 
@@ -79,7 +81,7 @@ public class EventController {
     
     
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event updatedEvent) {
+    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @Valid @RequestBody Event updatedEvent) {
         Event event = eventService.updateEvent(id, updatedEvent);
         return ResponseEntity.ok(event); // Return updated event
     }

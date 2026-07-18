@@ -52,6 +52,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -68,8 +69,11 @@ public class Location {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     private String name;
+    @NotBlank
     private String type; // Resort, Hotel, Pub, etc.
+    @NotBlank
     private String address;
 
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)

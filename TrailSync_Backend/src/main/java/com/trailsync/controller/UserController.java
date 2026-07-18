@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.trailsync.model.User;
 import com.trailsync.service.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -22,7 +24,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) {
+    public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
     	System.out.println(user.getRole());
         return ResponseEntity.ok(userService.createUser(user));
     }

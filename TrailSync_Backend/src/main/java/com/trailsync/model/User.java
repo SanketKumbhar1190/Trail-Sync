@@ -1,6 +1,9 @@
 package com.trailsync.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import java.util.*;
 
@@ -15,10 +18,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
+    @Size(min = 3, max = 30)
     private String username;
 
+    @NotBlank
+    @Email
     private String email;
 
+    @NotBlank
+    @Size(min = 8, max = 100)
     private String password;  // Fixed the non-breaking space issue here
 
     @ManyToOne

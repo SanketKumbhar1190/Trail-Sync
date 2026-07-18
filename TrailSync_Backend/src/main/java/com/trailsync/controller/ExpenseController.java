@@ -8,6 +8,8 @@ import com.trailsync.model.Event;
 import com.trailsync.model.Expense;
 import com.trailsync.service.ExpenseService;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -23,7 +25,7 @@ public class ExpenseController {
 
 	// Add a new expense to an event
 	@PostMapping("/add/{eventId}")
-	public ResponseEntity<Expense> addExpense(@PathVariable Long eventId, @RequestBody Expense expense) {
+	public ResponseEntity<Expense> addExpense(@PathVariable Long eventId, @Valid @RequestBody Expense expense) {
 		expense.setEvent(null); // Ensure no invalid event association at this point
 		expense.setEvent(new Event(eventId)); // Assuming the eventId exists
 		Expense createdExpense = expenseService.addExpense(expense,eventId);
@@ -56,7 +58,7 @@ public class ExpenseController {
 
 	// Update an existing expense
 	@PutMapping("/{expenseId}")
-	public ResponseEntity<Expense> updateExpense(@PathVariable Long expenseId, @RequestBody Expense updatedExpense) {
+	public ResponseEntity<Expense> updateExpense(@PathVariable Long expenseId, @Valid @RequestBody Expense updatedExpense) {
 
 		Expense updated = expenseService.updateExpense(expenseId, updatedExpense);
 		return ResponseEntity.ok(updated);

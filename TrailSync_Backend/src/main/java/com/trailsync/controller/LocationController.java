@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import com.trailsync.model.Location;
 import com.trailsync.service.LocationService;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -37,14 +39,14 @@ public class LocationController {
     
     
     @PostMapping
-    public ResponseEntity<Location> createLocation(@RequestBody Location location) {
+    public ResponseEntity<Location> createLocation(@Valid @RequestBody Location location) {
         Location createdLocation = locationService.saveLocation(location);
         return ResponseEntity.status(201).body(createdLocation); // Return 201 Created status with the created location
     }
 
     // Create or update a location
     @PutMapping("/{id}")
-    public Location updateLocation(@PathVariable Long id, @RequestBody Location location) {
+    public Location updateLocation(@PathVariable Long id, @Valid @RequestBody Location location) {
         location.setId(id);  // Ensure the correct ID is set for the location object
         return locationService.saveLocation(location);  // This method can be reused to save or update the location
     }
