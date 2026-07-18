@@ -95,6 +95,10 @@ public class EventServiceImpl implements EventService {
         User user = urepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
+        if (event.getParticipants().contains(user)) {
+            throw new IllegalArgumentException("User is already a participant in this event.");
+        }
+
         // Add the user to the event's participants list
         event.getParticipants().add(user);
 

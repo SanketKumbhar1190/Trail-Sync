@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "users")
-
+@EqualsAndHashCode(of = "id")
 public class User {
 
     @Id

@@ -10,10 +10,14 @@ import com.trailsync.repository.EventRepository;
 import com.trailsync.repository.ExpenseRepository;
 import com.trailsync.service.ExpenseService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
+
+    private static final double ROUNDING_TOLERANCE = 0.01;
 
     private final ExpenseRepository expenseRepository;
     private final EventRepository eventRepository;
@@ -46,61 +50,99 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
-    public List<Expense> addExpenseAndSplit(Long eventId, Expense expense, String splitType) {
-        // Fetch the event associated with the given eventId
+    public List<Expense> addExpenseAndSplit(Long eventId, Expense expense, String splitType,
+            Map<Long, Double> participantShares) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("Event not found"));
 
         double totalAmount = expense.getAmount();
-        int participantsCount = event.getParticipants().size();
+        List<User> participants = event.getParticipants();
+        int participantsCount = participants.size();
 
-        // Validate that there are participants in the event
         if (participantsCount == 0) {
             throw new IllegalArgumentException("Cannot split expense. No participants found.");
         }
 
-        // Logic for dividing the expense among participants
+        List<Expense> splitExpenses = new ArrayList<>();
+
         if ("equal".equals(splitType)) {
             double amountPerParticipant = totalAmount / participantsCount;
-            expense.setDescription("Expense split equally among " + participantsCount + " participants.");
-            expenseRepository.save(expense);
+            double allocated = 0;
 
-            // Assuming each participant gets an equal amount
-            event.getParticipants().forEach(participant -> {
-                Expense participantExpense = new Expense();
-                participantExpense.setEvent(event);
-                participantExpense.setAmount(amountPerParticipant);
-                participantExpense.setDescription("Expense for participant " + participant.getUsername());
-                expenseRepository.save(participantExpense);
-            });
+            for (int i = 0; i < participantsCount; i++) {
+                User participant = participants.get(i);
+                double share = (i == participantsCount - 1)
+                        ? Math.round((totalAmount - allocated) * 100.0) / 100.0
+                        : Math.round(amountPerParticipant * 100.0) / 100.0;
+                allocated += share;
+
+                Expense participantExpense = buildParticipantExpense(event, expense, participant, share,
+                        "Equal share for " + participant.getUsername());
+                splitExpenses.add(expenseRepository.save(participantExpense));
+            }
 
         } else if ("percentage".equals(splitType)) {
-            double percentagePerParticipant = totalAmount / participantsCount;
+            Map<Long, Double> percentages = requireShares(participantShares, "percentage");
+            double percentageSum = percentages.values().stream().mapToDouble(Double::doubleValue).sum();
+            if (Math.abs(percentageSum - 100.0) > ROUNDING_TOLERANCE) {
+                throw new IllegalArgumentException("Percentages must sum to 100.");
+            }
 
-            // Percentage-based split for each participant
-            event.getParticipants().forEach(participant -> {
-                double participantAmount = (percentagePerParticipant / 100) * totalAmount;
-                Expense participantExpense = new Expense();
-                participantExpense.setEvent(event);
-                participantExpense.setAmount(participantAmount);
-                participantExpense.setDescription("Percentage-based expense for participant " + participant.getUsername());
-                expenseRepository.save(participantExpense);
-            });
+            for (User participant : participants) {
+                Double percentage = percentages.get(participant.getId());
+                if (percentage == null) {
+                    throw new IllegalArgumentException(
+                            "Missing percentage for participant " + participant.getUsername());
+                }
+                double share = Math.round((percentage / 100.0) * totalAmount * 100.0) / 100.0;
+                Expense participantExpense = buildParticipantExpense(event, expense, participant, share,
+                        percentage + "% share for " + participant.getUsername());
+                splitExpenses.add(expenseRepository.save(participantExpense));
+            }
 
         } else if ("individual".equals(splitType)) {
-            // Individual share input logic for each participant
-            event.getParticipants().forEach(participant -> {
-                double participantShare = getIndividualShareFromUser(participant);
-                Expense participantExpense = new Expense();
-                participantExpense.setEvent(event);
-                participantExpense.setAmount(participantShare);
-                participantExpense.setDescription("Individual expense for participant " + participant.getUsername());
-                expenseRepository.save(participantExpense);
-            });
+            Map<Long, Double> amounts = requireShares(participantShares, "individual");
+            double amountsSum = amounts.values().stream().mapToDouble(Double::doubleValue).sum();
+            if (Math.abs(amountsSum - totalAmount) > ROUNDING_TOLERANCE) {
+                throw new IllegalArgumentException("Individual amounts must sum to the total expense amount.");
+            }
+
+            for (User participant : participants) {
+                Double share = amounts.get(participant.getId());
+                if (share == null) {
+                    throw new IllegalArgumentException(
+                            "Missing amount for participant " + participant.getUsername());
+                }
+                Expense participantExpense = buildParticipantExpense(event, expense, participant, share,
+                        "Individual share for " + participant.getUsername());
+                splitExpenses.add(expenseRepository.save(participantExpense));
+            }
+
+        } else {
+            throw new IllegalArgumentException("Unsupported split type: " + splitType);
         }
 
-        // Return the list of expenses associated with the event after updates
         return expenseRepository.findByEventId(eventId);
+    }
+
+    private Map<Long, Double> requireShares(Map<Long, Double> participantShares, String splitType) {
+        if (participantShares == null || participantShares.isEmpty()) {
+            throw new IllegalArgumentException("Participant shares are required for " + splitType + " split.");
+        }
+        return participantShares;
+    }
+
+    private Expense buildParticipantExpense(Event event, Expense source, User participant, double amount,
+            String description) {
+        Expense participantExpense = new Expense();
+        participantExpense.setEvent(event);
+        participantExpense.setName(source.getName());
+        participantExpense.setAmount(amount);
+        participantExpense.setDescription(
+                source.getDescription() != null && !source.getDescription().isBlank()
+                        ? source.getDescription() + " (" + description + ")"
+                        : description);
+        return participantExpense;
     }
 
     @Override
@@ -128,11 +170,5 @@ public class ExpenseServiceImpl implements ExpenseService {
     public void deleteExpense(Long expenseId) {
         // Delete an expense by its id
         expenseRepository.deleteById(expenseId);
-    }
-
-    // Utility method for simulating individual share logic
-    private double getIndividualShareFromUser(User participant) {
-        // Placeholder for custom logic, could be based on user input or specific share calculation
-        return Math.round(Math.random() * 1000.0) / 100.0;  // Simulating a random value.
     }
 }

@@ -64,7 +64,7 @@ public class AuthController {
 		Optional<User> user = userService.getUserByEmail(jwtRequest.getEmail()); // Assuming this method exists in
 																					// UserService
 
-		if (user == null) {
+		if (user.isEmpty()) {
 			throw new BadCredentialsException("User not found");
 		}
 

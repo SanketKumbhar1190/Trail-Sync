@@ -28,6 +28,7 @@ public class Payment {
     @Pattern(regexp = "^[0-9]{10}$", message = "Mobile number must be exactly 10 digits")
     private String phno;
     private String razorpayOrderId;
+    private String razorpayPaymentId;
 
     
     @ManyToOne

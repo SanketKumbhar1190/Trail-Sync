@@ -4,13 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.trailsync.dto.ExpenseSplitRequest;
 import com.trailsync.model.Event;
 import com.trailsync.model.Expense;
 import com.trailsync.service.ExpenseService;
 
 import jakarta.validation.Valid;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -42,10 +45,23 @@ public class ExpenseController {
 
 	// Split the expense for an event based on given criteria
 	@PostMapping("/split/{eventId}")
-	public ResponseEntity<List<Expense>> addExpenseAndSplit(@PathVariable Long eventId, @RequestBody Expense expense,
-			@RequestParam String splitType) {
+	public ResponseEntity<List<Expense>> addExpenseAndSplit(@PathVariable Long eventId,
+			@RequestBody ExpenseSplitRequest request, @RequestParam String splitType) {
 
-		List<Expense> expenses = expenseService.addExpenseAndSplit(eventId, expense, splitType);
+		Expense expense = new Expense();
+		expense.setName(request.getName());
+		expense.setAmount(request.getAmount());
+		expense.setDescription(request.getDescription());
+
+		Map<Long, Double> participantShares = null;
+		if (request.getShares() != null) {
+			participantShares = new HashMap<>();
+			for (Map.Entry<String, Double> entry : request.getShares().entrySet()) {
+				participantShares.put(Long.parseLong(entry.getKey()), entry.getValue());
+			}
+		}
+
+		List<Expense> expenses = expenseService.addExpenseAndSplit(eventId, expense, splitType, participantShares);
 		return ResponseEntity.ok(expenses);
 	}
 

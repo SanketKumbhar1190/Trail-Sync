@@ -12,7 +12,8 @@ public interface ExpenseService {
     List<Expense> getExpensesForEvent(Long eventId);
 
    
-    List<Expense> addExpenseAndSplit(Long eventId, Expense expense, String splitType);
+    List<Expense> addExpenseAndSplit(Long eventId, Expense expense, String splitType,
+            java.util.Map<Long, Double> participantShares);
 
   
     double calculateTotalExpensesForEvent(Long eventId);

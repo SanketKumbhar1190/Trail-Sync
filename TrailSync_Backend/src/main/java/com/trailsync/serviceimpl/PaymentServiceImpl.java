@@ -5,17 +5,18 @@ import java.util.Map;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.razorpay.Utils;
 import com.trailsync.model.Event;
 import com.trailsync.model.Payment;
 import com.trailsync.model.User;
 import com.trailsync.repository.PaymentRepository;
-import com.trailsync.service.PaymentService;
 @Service
 public class PaymentServiceImpl{
 
@@ -24,6 +25,9 @@ public class PaymentServiceImpl{
 
     @Autowired
     private RazorpayClient client;
+
+    @Value("${razorpay.secret.key}")
+    private String razorpaySecret;
 
     @Transactional
     public Payment createOrder(Payment order) throws RazorpayException {
@@ -67,12 +71,32 @@ public class PaymentServiceImpl{
     @Transactional
     public void updateOrder(Map<String, String> payload) {
         String razorpayOrderId = payload.get("razorpay_order_id");
+        String razorpayPaymentId = payload.get("razorpay_payment_id");
+        String razorpaySignature = payload.get("razorpay_signature");
+
         Payment order = paymentRepository.findByRazorpayOrderId(razorpayOrderId);
 
         if (order == null) {
             throw new IllegalArgumentException("Order not found.");
         }
 
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("razorpay_order_id", razorpayOrderId);
+            jsonObject.put("razorpay_payment_id", razorpayPaymentId);
+            jsonObject.put("razorpay_signature", razorpaySignature);
+
+            boolean isValid = Utils.verifyPaymentSignature(jsonObject, razorpaySecret);
+            if (!isValid) {
+                throw new SecurityException("Payment signature verification failed.");
+            }
+        } catch (SecurityException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SecurityException("Payment signature verification failed.");
+        }
+
+        order.setRazorpayPaymentId(razorpayPaymentId);
         order.setOrderStatus("PAYMENT_COMPLETED");
         paymentRepository.save(order);
     }
@@ -94,7 +118,7 @@ public class PaymentServiceImpl{
 
     
     @Transactional
-    public boolean processRefund(Long paymentId) {
+    public boolean processRefund(Long paymentId) throws RazorpayException {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found."));
 
@@ -102,11 +126,17 @@ public class PaymentServiceImpl{
             return false; // Only completed payments can be refunded
         }
 
-        // Update payment status to REFUNDED
+        if (payment.getRazorpayPaymentId() == null || payment.getRazorpayPaymentId().isEmpty()) {
+            throw new IllegalArgumentException("Razorpay payment ID not found for this payment.");
+        }
+
+        JSONObject refundRequest = new JSONObject();
+        refundRequest.put("amount", (int)(payment.getAmount() * 100));
+        client.payments.refund(payment.getRazorpayPaymentId(), refundRequest);
+
         payment.setOrderStatus("REFUNDED");
         paymentRepository.save(payment);
         return true;
     }
 
 }
-

@@ -28,7 +28,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         data.put("totalUsers", userRepository.getTotalUsers()); // Total users
         data.put("totalEvents", eventRepository.count()); // Total events
-        data.put("totalPayments", paymentRepository.getTotalRevenue("Completed")); // Pass status explicitly
+        data.put("totalPayments", paymentRepository.getTotalRevenue("PAYMENT_COMPLETED")); // Pass status explicitly
 
         data.put("eventTrends", eventRepository.getEventTrends()); // Event trends
 

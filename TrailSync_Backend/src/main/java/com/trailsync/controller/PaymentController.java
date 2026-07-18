@@ -84,6 +84,8 @@ public class PaymentController {
         try {
             paymentService.updateOrder(payload);
             return ResponseEntity.ok("Payment updated successfully.");
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Payment verification failed.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ " + e.getMessage());
         }
